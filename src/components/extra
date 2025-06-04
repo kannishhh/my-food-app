@@ -1,0 +1,93 @@
+import { LAT, LNG, SWIGGY_API, UPDATE_API } from "../utils/constants";
+
+const [offset, setOffset] = useState(null);
+  const [uuid, setUuid] = useState(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+
+
+let scrollTimeout = null;
+
+  const handleScroll = () => {
+    if (scrollTimeout) return;
+
+    scrollTimeout = setTimeout(() => {
+      if (
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 &&
+        offset &&
+        uuid?.length
+      ) {
+        fetchMoreRestaurants();
+      }
+      scrollTimeout = null;
+    }, 300);
+  };
+  
+ useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const fetchMoreRestaurants = async () => {
+    if (isLoadingMore) return;
+
+    setIsLoadingMore(true);
+
+    console.log("Fetching more restaurants with offset:", offset);
+
+    try {
+      const data = await fetch(UPDATE_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lng: LNG,
+          lat: LAT,
+          nextOffset: offset,
+          widgetOffset: {
+            NewListingView_Topical_Fullbleed: "",
+            NewListingView_category_bar_chicletranking_TwoRows: "",
+            Restaurant_Group_WebView_SEO_PB_THEME: "",
+            collectionV5RestaurantListWidget_SimRestoRelevance_food_seo: offset,
+            inlineFacetFilter: "",
+            restaurantCountWidget: "",
+          },
+          filter: {},
+          seoParams: {
+            apiName: "FoodHomePage",
+            pageType: "DESKTOP_WEB_LISTING",
+            seoUrl: "https://www.swiggy.com/",
+          },
+          page_type: "DESKTOP_WEB_LISTING",
+          restaurantUuids: uuid,
+        }),
+      });
+
+      const json = await data.json();
+
+      const restaurantCard = json?.data?.cards?.find(
+        (card) =>
+          card?.card?.card?.gridElements?.infoWithStyle?.restaurants?.length > 0
+      );
+
+      const newRestaurants =
+        restaurantCard?.card?.card?.gridElements?.infoWithStyle?.restaurants || [];
+
+      const nextOffset = json?.data?.pageOffset?.nextOffset;
+      const restaurantUuids =
+        restaurantCard?.card?.card?.gridElements?.infoWithStyle?.restaurantUuids;
+
+      console.log("Fetched", newRestaurants.length, "restaurants");
+
+      setListOfRestaurant((prev) => [...prev, ...newRestaurants]);
+      setFilteredRestaurant((prev) => [...prev, ...newRestaurants]);
+      setOffset(nextOffset);
+      setUuid(restaurantUuids);
+    } catch (err) {
+      console.error("Error loading more restaurants:", err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
