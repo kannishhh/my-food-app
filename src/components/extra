@@ -1,93 +1,106 @@
-import { LAT, LNG, SWIGGY_API, UPDATE_API } from "../utils/constants";
+import Shimmer from "./Shimmer";
+import { useParams } from "react-router-dom";
+import useRestaurantMenu from "../utils/useRestaurantMenu";
+import withBestSeller from "./withBestSeller";
+import MenuItemCard from "./MenuItemCard";
 
-const [offset, setOffset] = useState(null);
-  const [uuid, setUuid] = useState(null);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
 
+const BestSellerMenuItemCard = withBestSeller(MenuItemCard);
 
-let scrollTimeout = null;
+const RestaurantMenu = () => {
+  const { resId } = useParams();
 
-  const handleScroll = () => {
-    if (scrollTimeout) return;
+  const restInfo = useRestaurantMenu(resId);
 
-    scrollTimeout = setTimeout(() => {
-      if (
-        window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 &&
-        offset &&
-        uuid?.length
-      ) {
-        fetchMoreRestaurants();
-      }
-      scrollTimeout = null;
-    }, 300);
-  };
-  
- useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  if (restInfo === null) return <Shimmer />;
 
-  const fetchMoreRestaurants = async () => {
-    if (isLoadingMore) return;
+  const {
+    name,
+    cuisines,
+    costForTwoMessage,
+    avgRating,
+    areaName,
+    sla,
+    totalRatingsString,
+  } = restInfo?.cards[2]?.card?.card?.info;
 
-    setIsLoadingMore(true);
+  // Find the grouped card section
+  const regularCards = restInfo?.cards?.find(
+    (card) => card?.groupedCard?.cardGroupMap?.REGULAR
+  )?.groupedCard?.cardGroupMap?.REGULAR?.cards;
 
-    console.log("Fetching more restaurants with offset:", offset);
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      {/* {header section} */}
+      <div className="border-b pb-6 mb-6">
+        <h1 className="text-3xl font-bold">{name}</h1>
+        <div className="flex space-x-4 mt-2">
+          <span className="text-orange-500 font-semibold border-b-2 border-orange-600 pb-1 cursor-pointer">
+            Order Online
+          </span>
+          <span className="text-gray-500 cursor-pointer hover:text-orange-500">
+            Dineout
+          </span>
+        </div>
 
-    try {
-      const data = await fetch(UPDATE_API, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          lng: LNG,
-          lat: LAT,
-          nextOffset: offset,
-          widgetOffset: {
-            NewListingView_Topical_Fullbleed: "",
-            NewListingView_category_bar_chicletranking_TwoRows: "",
-            Restaurant_Group_WebView_SEO_PB_THEME: "",
-            collectionV5RestaurantListWidget_SimRestoRelevance_food_seo: offset,
-            inlineFacetFilter: "",
-            restaurantCountWidget: "",
-          },
-          filter: {},
-          seoParams: {
-            apiName: "FoodHomePage",
-            pageType: "DESKTOP_WEB_LISTING",
-            seoUrl: "https://www.swiggy.com/",
-          },
-          page_type: "DESKTOP_WEB_LISTING",
-          restaurantUuids: uuid,
-        }),
-      });
+        <div className="flex flex-col md:flex-row justify-between mt-4 text-sm text-gray-700">
+          <div className="flex space-x-2 items-center">
+            <span className="text-green-600 font-semibold">
+              <i className="fa-solid fa-star mr-1"></i> {avgRating} (
+              {totalRatingsString})
+            </span>{" "}
+            <span className="mx-1 text-gray-400">•</span>
+            <span>{costForTwoMessage}</span>
+          </div>
 
-      const json = await data.json();
+          <div className="mt-2 md:mt-0text-sm text-gray-600">
+            <div>{cuisines.join(", ")}</div>
+            <div className="flex space-x-2 mt-1">
+              <span className="text-black font-semibold">Outlet</span>
+              <span>{areaName}</span>
+              <span className="mx-1 text-gray-400">•</span>
+              <span>{sla?.slaString}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      const restaurantCard = json?.data?.cards?.find(
-        (card) =>
-          card?.card?.card?.gridElements?.infoWithStyle?.restaurants?.length > 0
-      );
+      {/* Menu Section -- Loop through all sections */}
+      {regularCards?.map((card, index) => {
+        const section = card?.card?.card;
 
-      const newRestaurants =
-        restaurantCard?.card?.card?.gridElements?.infoWithStyle?.restaurants || [];
+        if (section?.itemCards?.length > 0 && section?.title) {
+          return (
+            <div key={index} className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">{section.title}</h2>
+              <div className="space-y-6">
+                {section.itemCards.map((item) => {
+                  const info = item.card.info;
+                  return <BestSellerMenuItemCard key={info.id} item={info} />;
+                })}
+              </div>
+            </div>
+          );
+        }
 
-      const nextOffset = json?.data?.pageOffset?.nextOffset;
-      const restaurantUuids =
-        restaurantCard?.card?.card?.gridElements?.infoWithStyle?.restaurantUuids;
+        if (section?.categories?.length > 0) {
+          return section.categories.map((cat, catIndex) => (
+            <div key={`${index}-${catIndex}`} className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">{cat.title}</h2>
+              <div className="space-y-6">
+                {cat.itemCards?.map((item) => {
+                  const info = item.card.info;
+                  return <BestSellerMenuItemCard key={info.id} item={info} />;
+                })}
+              </div>
+            </div>
+          ));
+        }
+        return null;
+      })}
+    </div>
+  );
+};
 
-      console.log("Fetched", newRestaurants.length, "restaurants");
-
-      setListOfRestaurant((prev) => [...prev, ...newRestaurants]);
-      setFilteredRestaurant((prev) => [...prev, ...newRestaurants]);
-      setOffset(nextOffset);
-      setUuid(restaurantUuids);
-    } catch (err) {
-      console.error("Error loading more restaurants:", err);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
-
+export default RestaurantMenu;

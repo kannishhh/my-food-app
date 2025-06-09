@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import useOnlineStatus from "../utils/useOnlineStatus";
+import UserContext from "../utils/UserContext";
+import { useSelector } from "react-redux";
 
 export const Header = () => {
   const [btnName, setBtnName] = useState(["Login"]);
 
-  const onlineStatus = useOnlineStatus();
+  const { loggedInUser } = useContext(UserContext);
+
+  // Subscribing to the store using a Selector
+  const cartItems = useSelector((state) =>
+    state.cart.items.reduce((total, item) => total + item.quantity, 0)
+  );
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-md">
+    <header className="sticky top-0 z-50 bg-white shadow-md py-3">
       <div className="max-w-7xl mx-auto flex px-4 py-3 justify-between items-center ">
         <Link to="/" className="flex items-center gap-2">
           <img
@@ -41,12 +47,13 @@ export const Header = () => {
           </li>
           <li>
             <Link to="/cart" className="hover:text-green-600 transition">
-              <i className="fa-solid fa-cart-shopping mr-1"></i>Cart
+              <i className="fa-solid fa-cart-shopping mr-1"></i>Cart (
+              {cartItems} items)
             </Link>
           </li>
         </ul>
 
-        <div className="flex items-center gap-4">
+        <div className="flex justify-between">
           <button
             className="flex items-center bg-green-500 text-white rounded-full px-3 py-1.5 hover:bg-green-600 transition"
             onClick={() => {
@@ -56,14 +63,11 @@ export const Header = () => {
             {btnName}
             <i className="fa-solid fa-right-to-bracket ml-2"></i>
           </button>
-          <div className="flex items-center justify-center rounded-full bg-gray-200 text-green-700 text-sm font-semibold px-3 py-1  ">
-            <span
-              className={`w-2 h-2 mr-2 rounded-full ${
-                onlineStatus ? "bg-green-600" : "bg-red-600"
-              }`}
-            ></span>
-
-            {onlineStatus ? "Online" : "Offline"}
+          <div className="flex text-center">
+            <i className="fa-regular fa-user py-3 pl-3 text-lg"></i>
+            <li className="text-md font-semibold list-none py-2 pl-1 text-red-700">
+              {loggedInUser}
+            </li>
           </div>
         </div>
       </div>

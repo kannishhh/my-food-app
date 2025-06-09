@@ -3,58 +3,50 @@ import RestaurantCard from "./RestaurantCard";
 import Shimmer from "./Shimmer";
 import { useState, useEffect } from "react";
 import { SWIGGY_API } from "../utils/constants";
-import useOnlineStatus from "../utils/useOnlineStatus";
-import OfflinePopup from "./OfflinePopup";
+// import {useContext} from "react";
+// import UserContext from "../utils/UserContext";
 
 const Body = () => {
   const [listOfRestaurant, setListOfRestaurant] = useState([]);
   const [filteredRestaurant, setFilteredRestaurant] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [offset, setOffset] = useState([null]);
-  const [uuid, setUuid] = useState([null]);
+  // const [setOffset] = useState([null]);
+  // const [setUuid] = useState([null]);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    try {
-      const data = await fetch(SWIGGY_API);
-      const json = await data.json();
+    const data = await fetch(SWIGGY_API);
+    const json = await data.json();
 
-      const restaurantCard = json?.data?.cards?.find(
-        (card) =>
-          card?.card?.card?.gridElements?.infoWithStyle?.restaurants?.length > 0
-      );
+    const restaurant =
+      json?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle
+        ?.restaurants;
 
-      const restaurantsCards =
-        restaurantCard?.card?.card?.gridElements?.infoWithStyle?.restaurants || [];
+    // const restaurantsCards =
+    //   restaurant?.card?.card?.gridElements?.infoWithStyle?.restaurants || [];
 
-      const nextOffset = json?.data?.pageOffset?.nextOffset || null;
-      const restaurantUuids =
-        restaurantCard?.card?.card?.gridElements?.infoWithStyle?.restaurantUuids || [];
+    // const nextOffset = json?.data?.pageOffset?.nextOffset || null;
+    // const restaurantUuids =
+    //   restaurantsCards?.card?.card?.gridElements?.infoWithStyle
+    //     ?.restaurantUuids || [];
 
-      setListOfRestaurant(restaurantsCards);
-      setFilteredRestaurant(restaurantsCards);
-      setOffset(nextOffset);
-      setUuid(restaurantUuids);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    }
+    setListOfRestaurant(restaurant);
+    setFilteredRestaurant(restaurant);
+    // setOffset(nextOffset);
+    // setUuid(restaurantUuids);
   };
 
-  const onlineStatus = useOnlineStatus();
-
-  if (!onlineStatus) {
-    return <OfflinePopup />;
-  }
+  // const { loggedInUser, setUserName } = useContext(UserContext);
 
   return listOfRestaurant.length === 0 ? (
     <Shimmer />
   ) : (
     <div className="flex flex-col items-center bg-gray-50 min-h-screen pt-5">
       {/* Search and Filters */}
-      <div className="w-full max-w-7xl px-4 sticky top-[72px] z-40 bg-gray-50 py-4 shadow-sm">
+      <div className="w-full max-w-7xl px-4 sticky top-[95px] z-40 bg-gray-50 py-4 shadow-sm">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Search Bar */}
           <div className="flex w-full sm:w-auto gap-2 items-center">
@@ -65,6 +57,7 @@ const Body = () => {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
+
             <button
               className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors duration-300"
               onClick={() => {
@@ -77,6 +70,16 @@ const Body = () => {
               <i className="fa-solid fa-magnifying-glass"></i>
             </button>
           </div>
+
+          {/* <label className="text-lg px-2">
+            UserName : 
+            <input
+              type="search"
+              className="border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+              value={loggedInUser}
+              onChange={(e) => setUserName(e.target.value)}
+            ></input>
+          </label> */}
 
           {/* Filter Buttons */}
           <div className="flex flex-wrap gap-3 justify-center sm:justify-start">

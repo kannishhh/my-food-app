@@ -12,8 +12,6 @@ export default function Error() {
         We are fixing a temporary glitch. Sorry for the inconvenience.
       </motion.p>
 
-
-
       <motion.img src="/scooter.png" alt="Error Image"></motion.img>
       <motion.div className="button-container">
         <Button className="button" onClick={() => navigate("/")}>

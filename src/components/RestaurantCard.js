@@ -37,7 +37,7 @@ const RestaurantCard = (props) => {
             {avgRating}
           </span>
           <span className="mx-1">•</span>
-          <span >{sla?.slaString}</span>
+          <span>{sla?.slaString}</span>
         </div>
         <p className="text-sm text-gray-500 truncate">{cuisines.join(", ")}</p>
         <span className="text-sm text-gray-500 truncate">{locality}</span>
