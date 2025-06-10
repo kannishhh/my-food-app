@@ -34,3 +34,5 @@ proxyServer.js
 # Editor settings
 .vscode/
 .idea/
+
+/coverage
