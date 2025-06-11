@@ -14,7 +14,10 @@ const RestaurantCard = (props) => {
   } = resData?.info;
 
   return (
-    <div className="w-64 bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden cursor-pointer">
+    <div
+      data-testid="resCard"
+      className="w-64 bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden cursor-pointer"
+    >
       <div className="relative">
         <img
           className="w-full h-40 object-cover"

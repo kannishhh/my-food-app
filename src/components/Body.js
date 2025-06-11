@@ -3,41 +3,27 @@ import RestaurantCard from "./RestaurantCard";
 import Shimmer from "./Shimmer";
 import { useState, useEffect } from "react";
 import { SWIGGY_API } from "../utils/constants";
-// import {useContext} from "react";
-// import UserContext from "../utils/UserContext";
 
 const Body = () => {
   const [listOfRestaurant, setListOfRestaurant] = useState([]);
   const [filteredRestaurant, setFilteredRestaurant] = useState([]);
   const [searchText, setSearchText] = useState("");
-  // const [setOffset] = useState([null]);
-  // const [setUuid] = useState([null]);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const data = await fetch(SWIGGY_API);
-    const json = await data.json();
+  const data = await fetch(SWIGGY_API); 
+  const json = await data.json();
 
-    const restaurant =
-      json?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle
-        ?.restaurants;
+  const restaurant =
+    json?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle
+      ?.restaurants;
 
-    // const restaurantsCards =
-    //   restaurant?.card?.card?.gridElements?.infoWithStyle?.restaurants || [];
-
-    // const nextOffset = json?.data?.pageOffset?.nextOffset || null;
-    // const restaurantUuids =
-    //   restaurantsCards?.card?.card?.gridElements?.infoWithStyle
-    //     ?.restaurantUuids || [];
-
-    setListOfRestaurant(restaurant);
-    setFilteredRestaurant(restaurant);
-    // setOffset(nextOffset);
-    // setUuid(restaurantUuids);
-  };
+  setListOfRestaurant(restaurant);
+  setFilteredRestaurant(restaurant);
+};
 
   // const { loggedInUser, setUserName } = useContext(UserContext);
 
@@ -52,7 +38,9 @@ const Body = () => {
           <div className="flex w-full sm:w-auto gap-2 items-center">
             <input
               type="search"
-              className="w-full sm:w-96 h-10 px-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+              data-testid
+              = "searchInput"
+              className="w-full sm:w-96 h-10   px-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
               placeholder="Search for restaurants and food"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}

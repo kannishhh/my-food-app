@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 export const Header = () => {
-  const [btnName, setBtnName] = useState(["Login"]);
+  const [btnName, setBtnName] = useState("Login");
 
   const { loggedInUser } = useContext(UserContext);
 
